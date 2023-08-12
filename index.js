@@ -4,8 +4,11 @@ const Product = require('./model/products')
 const Cart = require('./model/cart.model')
 const Wish = require('./model/wish.model')
 const cors = require('cors')
+const User = require('./model/user.model')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
-
+require('dotenv').config()
 const app = express()
 app.use(express.json())
 app.use(cors())
@@ -108,6 +111,52 @@ app.delete('/wishList/:id',async(req,res)=>{
     }
 })
 
+app.post('/signup',async(req,res)=>{
+    const {email,password} = req.body;
+    const found = await User.findOne({email:email})
+    if(found!=null){
+        res.send({msg:"email already registered"})
+    } 
+    else{
+        await bcrypt.hash(password, 5, function(err, hash) {
+            const user =new User({
+                email,password : hash
+            });
+            try {
+                 user.save()
+                res.send({msg:"user registerd succesfully"});
+            } catch (error) {
+                res.send({msg:"please try again later"})
+            }
+        });
+       
+      
+       
+    }
+})
+
+app.post('/login',async(req,res)=>{
+    const {email,password} = req.body
+    const found = await User.findOne({email:email})
+    if(found==null){
+        res.send({msg:"invalid input"})
+    }
+    else{
+        const hash_password = found.password
+        bcrypt.compare(password, hash_password, function(err, response) {
+            if(response){
+                let token = jwt.sign({user_id : found._id}, process.env.SECRET_KEY);
+                
+                res.send({msg : "login successfull", token : token})
+                
+            }
+            else{
+               res.status(400).send({msg:"invalid input"})
+            }
+        });
+    }
+
+})
 
 
 
