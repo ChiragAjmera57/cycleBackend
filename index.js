@@ -3,12 +3,12 @@ const connection = require('./config/mongo')
 const Product = require('./model/products')
 const Cart = require('./model/cart.model')
 const Wish = require('./model/wish.model')
-
+const cors = require('cors')
 
 
 const app = express()
 app.use(express.json())
-
+app.use(cors())
 app.get('/products',async (req,res)=>{
    
     // console.log(req.query);
